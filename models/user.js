@@ -9,7 +9,8 @@ const userSchema = new mongoose.Schema({
   },
   phone: {
     type: String,
-    require: true
+    require: true,
+    unique: true
   },
   email: {
     type: String,
@@ -47,6 +48,27 @@ const userSchema = new mongoose.Schema({
   createdAt: {
     type: Date,
     default: Date.now,
+  },
+  orders: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Order',
+    }
+  ],
+  cart: {
+    lastModify: {
+      type: Date,
+      default: Date.now
+    },
+    products: [
+      {
+        objectId: {
+          type: mongoose.SchemaTypes.ObjectId,
+          ref: 'Product'
+        },
+        quantity: Number
+      }
+    ]
   }
 });
 

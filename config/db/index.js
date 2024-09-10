@@ -1,9 +1,11 @@
 const mongoose = require("mongoose");
-const MONGODB_URI = "mongodb+srv://kequetrac:WZErWZuKLQOvCHqn@cluster.5bh1r.mongodb.net/?retryWrites=true&w=majority&appName=Cluster";
+require('dotenv').config()
+
+const MONGODB_URI = "mongodb+srv://kequetrac:WZErWZuKLQOvCHqn@cluster.5bh1r.mongodb.net/computer_db?retryWrites=true&w=majority&appName=Cluster";
 
 async function connect() {
   try {
-    await mongoose.connect(MONGODB_URI, {
+    await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
