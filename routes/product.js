@@ -4,7 +4,20 @@ const {upload} = require('../helper/index');
 const ProductController = require('../controller/ProductController');
 
 router.get('/get-all', ProductController.show);
-router.post('/create', upload("image"), ProductController.create);
+router.post('/create', upload.fields([
+    {
+        name: 'primiryImg'
+    },
+    {
+        name: 'subImg1'
+    },
+    {
+        name: 'subImg2'
+    },
+    {
+        name: 'subImg3'
+    },
+]), ProductController.create);
 router.put('/update/:id', ProductController.update);
 router.delete('/delete/:id', ProductController.delete);
 

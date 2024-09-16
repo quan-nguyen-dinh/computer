@@ -9,7 +9,11 @@ const categorySchema = new mongoose.Schema({
             type: mongoose.SchemaTypes.ObjectId,
             ref: 'Product'
         }
-    ]
+    ],
+    createdDate: {
+        type: Date,
+        default: Date.now
+    }
 });
 
 const Category = mongoose.model('Category', categorySchema);

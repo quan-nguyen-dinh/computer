@@ -14,6 +14,10 @@ const productSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Category'
     },
+    brand: {
+        type: mongoose.SchemaTypes.ObjectId,
+        ref: 'Brand'
+    },
     review: {
         type: Number,
         enum: [1, 2, 3, 4, 5]
