@@ -19,6 +19,7 @@ router.post('/create', upload.fields([
     },
 ]), ProductController.create);
 router.put('/update/:id', ProductController.update);
+router.get('/filter-product', ProductController.filter);
 router.delete('/delete/:id', ProductController.delete);
 
 module.exports = router;

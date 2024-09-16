@@ -14,7 +14,7 @@ class ProductController {
     }
     async filter(req, res) {
         try {
-            const { categoryId, review, minPrice, maxPrice, offset = 1, limit = 10 } = req.params;
+            const { categoryId, review, minPrice, maxPrice, offset = 1, limit = 10 } = req.query;
             let query = null;
             const page = (offset - 1) * limit;
             if (categoryId) {

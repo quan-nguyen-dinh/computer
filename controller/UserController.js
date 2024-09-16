@@ -7,7 +7,7 @@ class UserController {
     // [POST] /register
     async register(req, res) {
         try {
-            const { name, email, password, profileImage, phone, role } = req.body;
+            const { name, password, phone } = req.body;
             console.log("userinfo: ", name, email, password, phone);
             const existingUser = await User.findOne({ phone });
             if (existingUser) {
@@ -17,11 +17,8 @@ class UserController {
 
             const newUser = new User({
                 name,
-                email,
                 password,
-                profileImage,
                 phone,
-                role
             });
 
             //generate the verification token
@@ -30,7 +27,7 @@ class UserController {
             await newUser.save();
             res.status(202).json({
                 message:
-                    "Registration successful.Please check your mail for verification",
+                    "Registration successful!",
             });
         } catch (error) {
             console.log("Error registering user", error);
