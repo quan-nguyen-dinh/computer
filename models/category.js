@@ -2,14 +2,11 @@ const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
     name: String,
-    icon: String,
+    icon: {
+        name: String,
+        component: []
+    },
     img: String,
-    products: [
-        {
-            type: mongoose.SchemaTypes.ObjectId,
-            ref: 'Product'
-        }
-    ],
     createdDate: {
         type: Date,
         default: Date.now
