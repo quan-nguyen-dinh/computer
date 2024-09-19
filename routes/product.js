@@ -2,8 +2,38 @@ const express = require('express');
 const router = express.Router();
 const {upload} = require('../helper/index');
 const ProductController = require('../controller/ProductController');
-
+/**
+ * @openapi
+ * '/product/get-all':
+ *  get:
+ *     tags:
+ *     - Product 
+ *     summary: Get all products 
+ *     responses:
+ *       200:
+ *         description: Success
+ *         content:
+ *          application/json:
+ *            schema:
+ *              type: array
+ *              items:
+ *                type: object
+ *                properties:
+ *                  id:
+ *                    type: string 
+ *                  name:
+ *                    type: string
+ *                  image:
+ *                    type: string
+ *                  price:
+ *                    type: number 
+ *                  category:
+ *                      type: string 
+ *       400:
+ *         description: Bad request
+ */
 router.get('/get-all', ProductController.show);
+
 router.post('/create', upload.fields([
     {
         name: 'primiryImg'
