@@ -37,6 +37,9 @@ class ProductController {
             if (lastest) {
                 query = query.sort({ createAt: -1 });
             }
+            if(!query) {
+                query = Product.find({});
+            }
             const products = await query.skip(page).limit(limit).exec();
             console.log('products: ', products);
             res.status(200).json({ products });
