@@ -33,7 +33,7 @@ const ProductController = require('../controller/ProductController');
  *         description: Bad request
  */
 router.get('/get-all', ProductController.show);
-
+router.get('/detail/:id', ProductController.detail);
 router.post('/create', upload.fields([
     {
         name: 'primiryImg'
