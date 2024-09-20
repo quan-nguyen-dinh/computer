@@ -1,4 +1,6 @@
 const mongoose = require("mongoose");
+const Product = require("./product");
+const {ProductSchema} = require('./product');
 
 const defaultProfileImg = 'https://i.pinimg.com/736x/c0/27/be/c027bec07c2dc08b9df60921dfd539bd.jpg';
 
@@ -34,12 +36,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
-  products: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Product",
-    },
-  ],
   createdAt: {
     type: Date,
     default: Date.now,
@@ -57,11 +53,12 @@ const userSchema = new mongoose.Schema({
     },
     products: [
       {
-        objectId: {
-          type: mongoose.SchemaTypes.ObjectId,
-          ref: 'Product'
-        },
-        quantity: Number
+        product: ProductSchema,
+        quantity: Number,
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
       }
     ]
   }

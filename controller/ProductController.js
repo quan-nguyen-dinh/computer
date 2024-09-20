@@ -14,13 +14,13 @@ class ProductController {
     }
     async filter(req, res) {
         try {
-            const { productName, lastest, categoryId, review, minToMax, maxToMin, offset = 1, limit = 10 } = req.query;
+            const { productName, lastest, minPrice, maxPrice, categoryId, review, minToMax, maxToMin, offset = 1, limit = 10 } = req.query;
             let query = null;
             const page = (offset - 1) * limit;
             console.log('page: ', productName);
             console.log('query: ', req.query);
             if (productName) {
-                query = Product.find({ name: { $regex: productName } })
+                query = Product.find({ name: { $regex: productName, $options: 'i' } })
             }
             if (categoryId) {
                 query = Product.where('category').equals(categoryId)

@@ -6,8 +6,8 @@ const categorySchema = new mongoose.Schema({
         name: String,
         component: []
     },
-    img: String,
-    createdDate: {
+    description: String,
+    createdAt: {
         type: Date,
         default: Date.now
     }
