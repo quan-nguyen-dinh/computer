@@ -8,7 +8,6 @@ class UserController {
     async register(req, res) {
         try {
             const { name, password, phone } = req.body;
-            console.log("userinfo: ", name, email, password, phone);
             const existingUser = await User.findOne({ phone });
             if (existingUser) {
                 console.log("Phone already registered");
