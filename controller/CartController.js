@@ -12,19 +12,24 @@ class CartController {
     }
     async addProduct(req, res) {
         try {
-            const {quantity, product} = req.body;
-            const user = await User.updateOne({_id: req.params.id}, {
+            const {quantity, product, userId} = req.body;
+            console.log('product: ', product);
+            console.log('userId: ', userId);
+            console.log('quantity: ', quantity);
+            const user = await User.updateOne({_id: userId}, {
                 $push: {
                     "cart.products": {
                         product,
-                        quantity
+                        quantity 
                     }
                 }
             });
+            // await Product.updateOne({_id: product._id}, {quantity: - _quantity})
             console.log('user: ', user);
             res.status(200).json({message: 'Add product successfully!'});
         } catch(err) {
             console.log('err: ', err);
+            res.status(500).json(err);
         }
     }
     async removeProduct(req, res) {
