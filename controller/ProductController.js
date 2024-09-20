@@ -14,8 +14,8 @@ class ProductController {
     }
     async filter(req, res) {
         try {
-            const { productName, brandName, lastest, minPrice, maxPrice, categoryId, review, minToMax, maxToMin, offset = 1, limit = 10 } = req.query;
-            let query = Product;
+            const { productName, brandName, sortBy, minPrice, maxPrice, categoryId, review, offset = 1, limit = 10 } = req.query;
+            let query = Product.find({});
             const page = (offset - 1) * limit;
             console.log('page: ', productName);
             console.log('query: ', req.query);
@@ -23,28 +23,37 @@ class ProductController {
                 query = query.find({ name: { $regex: productName, $options: 'i' } })
             }
             if (categoryId) {
-                query = Product.where('category').equals(categoryId)
+                query = query.where('category').equals(categoryId)
+            }
+            switch (sortBy) {
+                case 'latest_items':
+                    query = query.sort({ createAt: -1 });
+                    break;
+                case 'price_low_to_high':
+                    query = query.sort({ price: 1 });
+                    break;
+                case 'price_hight_to_low':
+                    query = query.sort({ price: -1 });
+                    break;
+                default:
+                    break;
             }
             if (review) {
                 query = query.where('review').equals(review);
             }
-            if (minToMax) {
-                query = query.sort({ price: 1 });
-            }
-            if (maxToMin) {
-                query = query.sort({ price: -1 })
-            }
-            if (lastest) {
-                query = query.sort({ createAt: -1 });
-            }
-            if(!query) {
-                query = query.find({});
+            if (minPrice && maxPrice) {
+                query = query.where('price').gte(minPrice).lte(maxPrice);
+            } else if (minPrice) {
+                query = query.where('price').gte(minPrice);
+            } else if (maxPrice) {
+                query = query.where('price').lte(maxPrice);
             }
             const products = await query.skip(page).limit(limit).exec();
             console.log('products: ', products);
             res.status(200).json({ products });
         } catch (err) {
             console.log(err);
+            res.status(500).json(err);
         }
     }
     async create(req, res) {
