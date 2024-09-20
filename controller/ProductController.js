@@ -14,7 +14,7 @@ class ProductController {
     }
     async filter(req, res) {
         try {
-            const { productName, brandName, sortBy, minPrice, maxPrice, categoryId, review, offset = 1, limit = 10 } = req.query;
+            const { productName, brandName, sortBy, priceMin, priceMax, categoryId, review, offset = 1, limit = 10 } = req.query;
             let query = Product.find({});
             const page = (offset - 1) * limit;
             console.log('page: ', productName);
@@ -41,12 +41,12 @@ class ProductController {
             if (review) {
                 query = query.where('review').equals(review);
             }
-            if (minPrice && maxPrice) {
-                query = query.where('price').gte(minPrice).lte(maxPrice);
-            } else if (minPrice) {
-                query = query.where('price').gte(minPrice);
-            } else if (maxPrice) {
-                query = query.where('price').lte(maxPrice);
+            if (priceMin && priceMax) {
+                query = query.where('price').gte(priceMin).lte(priceMax);
+            } else if (priceMin) {
+                query = query.where('price').gte(priceMin);
+            } else if (priceMax) {
+                query = query.where('price').lte(priceMax);
             }
             const products = await query.skip(page).limit(limit).exec();
             console.log('products: ', products);
