@@ -72,7 +72,7 @@ class UserController {
             const secretKey = generateSecretKey();
             const token = jwt.sign({ userId: user._id }, secretKey);
             console.log("token: ", token);
-            res.status(200).json({ token, role: user.role });
+            res.status(200).json({ token, role: user.role, userId: user._id });
         } catch (error) {
             console.log("error: ", error);
             res.status(500).json({ message: "Login failed" });
