@@ -79,6 +79,22 @@ class UserController {
             res.status(500).json({ message: "Login failed" });
         }
     }
+    async changePassword(req, res) {
+        try {
+            const {currentPassword, newPassword, userId} = req.body;
+            // console.log('hs: ', crypto.hash(cry))
+            const exitUser = await User.findOne({_id: userId, password: currentPassword});
+            console.log('exitUser: ', exitUser);
+            if(!exitUser) {
+                res.status(404).json({message: 'Mật khẩu hiện tại không chính xác'});
+            }
+            const user = await User.updateOne({_id: userId}, {password: newPassword});
+            console.log('user: ', user);
+            res.status(200).json({message: 'Update password successfully'});
+        } catch (err) {
+            console.log('err: ', err);
+        }
+    }
 }
 
 module.exports = new UserController();
