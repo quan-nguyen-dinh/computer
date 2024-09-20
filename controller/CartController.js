@@ -16,16 +16,37 @@ class CartController {
             console.log('product: ', product);
             console.log('userId: ', userId);
             console.log('quantity: ', quantity);
-            const user = await User.updateOne({_id: userId}, {
-                $push: {
-                    "cart.products": {
-                        product,
-                        quantity 
-                    }
+            const availableProduct = await Product.findById(product._id);
+            if(availableProduct.quantity < quantity) {
+                return res.status(200).json({message: "No available product!"});
+            }
+            let {products} = (await User.findById(userId).select('cart'))?.cart;
+            let hasProduct = false;
+            products.forEach(item=>{
+                if(item.product._id.toString() === product._id) {
+                    item.quantity += quantity;
+                    hasProduct = true;
                 }
             });
-            // await Product.updateOne({_id: product._id}, {quantity: - _quantity})
-            console.log('user: ', user);
+            if (hasProduct) {
+                const cart =  await User.updateOne({_id: userId}, {
+                    $set: {'cart.products': products}
+                });
+                console.log('HAS PRODUCT: ', cart);
+               
+            } else {
+                const user = await User.updateOne({_id: userId}, {
+                    $push: {
+                        "cart.products": {
+                            product,
+                            quantity 
+                        }
+                    }
+                });
+                console.log('NO HAS PRODUCT: ', user);
+            }
+            const aProduct = await Product.updateOne({_id: product._id}, {$inc: {quantity: -quantity}});
+            console.log('a: ', aProduct);
             res.status(200).json({message: 'Add product successfully!'});
         } catch(err) {
             console.log('err: ', err);
@@ -34,9 +55,16 @@ class CartController {
     }
     async removeProduct(req, res) {
         try {
-            const {productId, quantity, userId} = req.query;
-            let {products} = await User.findById(userId).select('cart');
-            products  = products.filter(item=>item.product._id === productId);
+            const {productId, userId} = req.query;
+            console.log(req.query);
+            let {products} = (await User.findById(userId).select('cart'))?.cart;
+            console.log('cart: ', products);
+            // let products = cart.products;
+            console.log('PRODUCTS: ', products);
+            products  = products.filter(item=>{
+                console.log('item: ', item.product);
+                return item?.product?._id.toString() !== productId;
+            });
             const cart = await User.updateOne({_id: userId}, {
                 $set: {'cart.products': products}
             });
@@ -49,12 +77,11 @@ class CartController {
     async updateProduct(req, res) {
         try {
             const {productId, quantity, userId} = req.query;
-            let {products} = await User.findById(userId).select('cart');
-            products  = products.map(item=>{
-                if(item.product._id === productId) {
-                    item.quanty = quantity;
+            let {products} = (await User.findById(userId).select('cart')).cart;
+            products.forEach(item=>{
+                if(item.product._id.toString() === productId) {
+                    item.quantity = quantity;
                 }
-                return item;
             });
             const cart = await User.updateOne({_id: userId}, {
                 $set: {'cart.products': products}
