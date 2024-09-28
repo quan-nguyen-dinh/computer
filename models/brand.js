@@ -5,7 +5,6 @@ const brandSchema = new mongoose.Schema({
         type: String,
         unique: true
     },
-    icon: String,
     image: String,
     products: [
         {
