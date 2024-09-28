@@ -34,9 +34,9 @@ const ProductController = require('../controller/ProductController');
  */
 router.get('/get-all', ProductController.show);
 router.get('/detail/:id', ProductController.detail);
-router.post('/create', upload.fields([
+router.post('/create',upload.fields([
     {
-        name: 'primiryImg'
+        name: 'primaryImg'
     },
     {
         name: 'subImg1'
@@ -48,7 +48,20 @@ router.post('/create', upload.fields([
         name: 'subImg3'
     },
 ]), ProductController.create);
-router.put('/update/:id', ProductController.update);
+router.put('/update/:id', upload.fields([
+    {
+        name: 'primaryImg'
+    },
+    {
+        name: 'subImg1'
+    },
+    {
+        name: 'subImg2'
+    },
+    {
+        name: 'subImg3'
+    },
+]),ProductController.update);
 router.get('/filter-product', ProductController.filter);
 router.delete('/delete/:id', ProductController.delete);
 

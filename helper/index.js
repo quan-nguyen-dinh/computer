@@ -26,11 +26,12 @@ const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
       fileSize: 2 * 1024 * 1024, // 2 MB
-      files: 1,
+      files: 10,
   },
 });
 
 const uploadToCloudinary = (file) => {
+    console.log('upload file: ', file);
     return new Promise((resolve, reject) => {
         let stream = cloudinary.uploader.upload_stream((error, result) => {
             if (result) {
@@ -39,13 +40,27 @@ const uploadToCloudinary = (file) => {
                 reject(error);
             }
         });
-
+        
         streamifier.createReadStream(file.buffer).pipe(stream);
     });
 };
 
+const uploadMultipleFileToCloudinary = async (files) => {
+    let primaryImage = null, subImages = [];
+    await Promise.all((Object.entries(files)).map(async (image) => {
+        console.log('image: ', image);
+        const imageUrl = await uploadToCloudinary(image[1][0]);
+        console.log('URL: ', imageUrl.url);
+        if (image[0] === 'primaryImg') {
+            primaryImage = imageUrl.url;
+        } else {
+            subImages = [...subImages, imageUrl.url];
+        }
+    }));
+    return {primaryImage, subImages };
+}
 // const getUrl = async () => {
 //     return await cloudinary.uploader.upload();
 // }
 
-module.exports = { generateSecretKey, uploadToCloudinary, upload };
+module.exports = { generateSecretKey, uploadToCloudinary, upload, uploadMultipleFileToCloudinary };

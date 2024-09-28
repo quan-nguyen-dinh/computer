@@ -12,7 +12,8 @@ const productSchema = new mongoose.Schema({
     },
     category: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Category'
+        ref: 'Category',
+        require: true
     },
     brand: {
         type: mongoose.SchemaTypes.ObjectId,
@@ -27,7 +28,8 @@ const productSchema = new mongoose.Schema({
     description: String,
     quantity: {
         type: Number,
-        default: 0
+        default: 0,
+        min: 0
     },
     createdAt: {
         type: Date,

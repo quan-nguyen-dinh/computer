@@ -1,6 +1,5 @@
 const Product = require('../models/product');
-const { uploadToCloudinary } = require('../helper/index');
-
+const { uploadMultipleFileToCloudinary } = require('../helper/index');
 class ProductController {
     async show(req, res) {
         try {
@@ -15,6 +14,7 @@ class ProductController {
     async filter(req, res) {
         try {
             const { productName, brandName, sortBy, priceMin, priceMax, categoryId, review, offset = 1, limit = 10 } = req.query;
+            
             let query = Product.find({});
             const page = (offset - 1) * limit;
             console.log('page: ', productName);
@@ -56,23 +56,34 @@ class ProductController {
             res.status(500).json(err);
         }
     }
+    async uploadImage(files) {
+        let primaryImage = null, subImages = [];
+        await Promise.all((Object.entries(files)).map(async (image) => {
+            console.log('image: ', image);
+            const imageUrl = await uploadToCloudinary(image[1][0]);
+            console.log('URL: ', imageUrl.url);
+            if (image[0] === 'primaryImg') {
+                primaryImage = imageUrl.url;
+            } else {
+                subImages = [...subImages, imageUrl.url];
+            }
+        }));
+        return { primaryImage, subImages};
+    }
     async create(req, res) {
         try {
-            const { name, shortDescription, description, quantity, price, categoryId } = req.body;
-            let primaryImage, subImage = [];
-            (req.files || []).forEach(async (image) => {
-                const imageUrl = await uploadToCloudinary(image)?.url;
-                if (image.fieldname === 'primaryImg') {
-                    primaryImage = imageUrl;
-                } else {
-                    subImage = [...subImage, imageUrl];
-                }
-            });
-            // const result = await uploadToCloudinary(req.files);
+            console.time();
+            const { name, shortDescription, description, quantity, price, category } = req.body;
+            console.log('body: ', req.body);
+            console.log('fiels: ', req.files)
+            const {primaryImage, subImages} = uploadMultipleFileToCloudinary(req.files);
+            console.log('PRIMARY IMAGE TO UPLOAD----------------------------: ', primaryImage);
+            console.log('SUBIMAGE TO UPLOAD+++++++++++++++++++++++++++++: ', subImages);
             const newProduct = new Product({
-                name, image: primaryImage, subImage, shortDescription, description, quantity, price, categoryId
+                name, image: primaryImage, subImages, shortDescription, description, quantity, price, category
             });
             await newProduct.save();
+            console.timeEnd();
             res.status(201).json({ message: 'Create successfully!' });
         } catch (err) {
             console.log(err);
@@ -91,9 +102,24 @@ class ProductController {
     }
     async update(req, res) {
         try {
-            const { name, image, shortDescription, description, quantity, price } = req.body;
+            console.log('params: ', req.params);
+            console.log('body: ', req.body);
+            console.log('files: ', req.files);
+            let primaryImg = '', subImages = [];
+            const { name, shortDescription, category, description, quantity, price } = req.body;
+            if (req.body.primaryImg) {
+                primaryImg = req.body.primaryImg;
+            }
+            if (Object.keys(req.files).length > 0) {
+                const images = await uploadMultipleFileToCloudinary(req.files);
+                primaryImg = primaryImg || images.primaryImage;
+                subImages = images.subImages;
+            } else {
+                subImages = [req.body.subImg1, req.body.subImg2, req.body.subImg3];
+            }
+            console.log(primaryImg, subImages);
             await Product.findByIdAndUpdate(req.params.id, {
-                name, image, shortDescription, description, quantity, price
+                name, image: primaryImg, shortDescription, description, quantity, price, subImages, category
             });
             res.status(200).json({ message: 'Update successfully!' });
         } catch (err) {
