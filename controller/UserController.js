@@ -2,8 +2,19 @@ const User = require('../models/user');
 const { generateSecretKey, client } = require("../helper");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
+const CryptoJS = require("crypto-js");
+const { userInfo } = require('os');
 
 class UserController {
+    async getUserInfo(req, res) {
+        try {
+            const userInfo = await User.findById(req.params.userId).select("-password");
+            console.log('userInfo: ', userInfo);
+            res.status(200).json({ userInfo });
+        } catch(err) {
+            console.log('err: ', err);
+        }
+    }
     // [POST] /register
     async register(req, res) {
         try {
@@ -13,10 +24,11 @@ class UserController {
                 console.log("Phone already registered");
                 return res.status(400).json({ message: "Phone already registered" });
             }
-
+            const hashPassword = CryptoJS.SHA1(password);
+            console.log('hassPasssword: ', hashPassword);
             const newUser = new User({
                 name,
-                password,
+                hashPassword,
                 phone,
             });
 
@@ -65,8 +77,8 @@ class UserController {
             if (!user) {
                 return res.status(401).json({ message: "Invalid phone" });
             }
-
-            if (user.password !== password) {
+            const hashPassword = CryptoJS.SHA1(password);
+            if (user.password !== hashPassword) {
                 return res.status(401).json({ message: "Invalid password" });
             }
             const secretKey = generateSecretKey();
@@ -81,13 +93,14 @@ class UserController {
     async changePassword(req, res) {
         try {
             const {currentPassword, newPassword, userId} = req.body;
-            // console.log('hs: ', crypto.hash(cry))
-            const exitUser = await User.findOne({_id: userId, password: currentPassword});
+            const hashCurrentPW = CryptoJS.SHA1(currentPassword);
+            const exitUser = await User.findOne({_id: userId, password: hashCurrentPW});
             console.log('exitUser: ', exitUser);
             if(!exitUser) {
                 res.status(404).json({message: 'Mật khẩu hiện tại không chính xác'});
             }
-            const user = await User.updateOne({_id: userId}, {password: newPassword});
+            const hashPassword = CryptoJS.SHA1(newPassword);
+            const user = await User.updateOne({_id: userId}, {password: hashPassword});
             console.log('user: ', user);
             res.status(200).json({message: 'Update password successfully'});
         } catch (err) {
