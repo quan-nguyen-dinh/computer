@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const {ProductSchema} = require('./product');
 
 const orderSchema = new mongoose.Schema({
     createAt: {
@@ -7,13 +8,19 @@ const orderSchema = new mongoose.Schema({
     },
     products: [
       {
-        objectId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product',
-        },
+        product: ProductSchema,
         quantity: Number
       }
     ],
+    user: {
+      type: mongoose.SchemaTypes.ObjectId,
+      ref: 'User'
+    },
+    status: {
+      type: String,
+      enum: ['PENDING', 'DONE'],
+      default: 'INIT'
+    },
     totalPrice: BigInt
 });
 
