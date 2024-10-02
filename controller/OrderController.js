@@ -20,9 +20,9 @@ class OrderController {
    }
    async create(req, res) {
         try {
-            const { name, products, totalPrice, userId } = req.body;
-            const Order = new Order({name, products, totalPrice, user: userId });
-            await Order.save();
+            const { products, totalPrice, userId } = req.body;
+            const order = new Order({ products, totalPrice, user: userId });
+            await order.save();
             res.status(200).json({message: 'Order successfullly!'});
         }catch (err){
             console.log(err);
@@ -30,9 +30,8 @@ class OrderController {
    }
    async update(req, res) {
         try {
-            const { name, products, totalPrice, userId } = req.body;
-            const Order = await Order.updateOne({_id: req.params.id},  { name: req.body.name, image: imageUrl});
-            console.log('update Order: ', Order);
+            const order = await Order.updateOne({_id: req.params.id},  { status: req.body?.status});
+            console.log('update Order: ', order);
             res.status(200).json({message: 'Update Order successfully'});
         } catch(err){
             console.log(err);
@@ -40,8 +39,8 @@ class OrderController {
    }
    async delete(req, res) {
         try {
-            const Order = await Order.findByIdAndDelete(req.params.id);
-            console.log('DELETE Order: ', Order);
+            const order = await Order.findByIdAndDelete(req.params.id);
+            console.log('DELETE Order: ', order);
             res.status(200).json({message: 'Delete Order successfully'});
         }catch(err) {
             console.log(err);
@@ -49,4 +48,4 @@ class OrderController {
    }
 }
 
-module.exports = OrderController;
+module.exports = new OrderController();

@@ -18,8 +18,8 @@ const orderSchema = new mongoose.Schema({
     },
     status: {
       type: String,
-      enum: ['PENDING', 'DONE'],
-      default: 'INIT'
+      enum: ['PENDING', 'COMPLETED', 'PROCESSING', 'CANCELLED'],
+      default: 'PENDING'
     },
     totalPrice: BigInt
 });
