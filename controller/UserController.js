@@ -25,16 +25,14 @@ class UserController {
                 return res.status(400).json({ message: "Phone already registered" });
             }
             const hashPassword = CryptoJS.SHA1(password);
-            console.log('hassPasssword: ', hashPassword);
             const newUser = new User({
                 name,
-                hashPassword,
+                password: hashPassword,
                 phone,
             });
 
-            //generate the verification token
             newUser.verificationToken = crypto.randomBytes(20).toString("hex");
-            console.log("newUser: ", newUser);
+
             await newUser.save();
             res.status(202).json({
                 message:
@@ -77,7 +75,9 @@ class UserController {
             if (!user) {
                 return res.status(401).json({ message: "Invalid phone" });
             }
-            const hashPassword = CryptoJS.SHA1(password);
+            const hashPassword = CryptoJS.SHA1(password).toString();
+            console.log('USER PASSWROD: ', user.password);
+            console.log('hasPassword: ', hashPassword);
             if (user.password !== hashPassword) {
                 return res.status(401).json({ message: "Invalid password" });
             }
