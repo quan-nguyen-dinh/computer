@@ -94,7 +94,7 @@ class UserController {
         try {
             const {currentPassword, newPassword, userId} = req.body;
             const hashCurrentPW = CryptoJS.SHA1(currentPassword);
-            const exitUser = await User.findOne({_id: userId, password: hashCurrentPW});
+            const exitUser = await User.findOne({_id: userId, password: hashCurrentPW.toString()});
             console.log('exitUser: ', exitUser);
             if(!exitUser) {
                 res.status(404).json({message: 'Mật khẩu hiện tại không chính xác'});
