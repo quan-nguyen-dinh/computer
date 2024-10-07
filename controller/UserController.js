@@ -93,13 +93,14 @@ class UserController {
     async changePassword(req, res) {
         try {
             const {currentPassword, newPassword, userId} = req.body;
-            const hashCurrentPW = CryptoJS.SHA1(currentPassword);
+            const hashCurrentPW = CryptoJS.SHA1(currentPassword).toString();
             const exitUser = await User.findOne({_id: userId, password: hashCurrentPW.toString()});
             console.log('exitUser: ', exitUser);
             if(!exitUser) {
                 res.status(404).json({message: 'Mật khẩu hiện tại không chính xác'});
             }
-            const hashPassword = CryptoJS.SHA1(newPassword);
+            const hashPassword = CryptoJS.SHA1(newPassword).toString();
+            console.log('hassPasswrod: ', hashPassword);
             const user = await User.updateOne({_id: userId}, {password: hashPassword});
             console.log('user: ', user);
             res.status(200).json({message: 'Update password successfully'});
