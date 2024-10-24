@@ -28,6 +28,6 @@ const orderSchema = new mongoose.Schema({
   totalPrice: BigInt,
 });
 
-const Order = mongoose.model('Order', orderSchema);
+const Order = mongoose.model('Order', orderSchema, { collection: 'order' });
 
 module.exports = Order;

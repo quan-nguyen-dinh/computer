@@ -26,6 +26,8 @@ brandSchema.statics.getAll = function () {
   return this.find();
 };
 
-const Brand = mongoose.model('Brand', brandSchema);
+const Brand = mongoose.model('Brand', brandSchema, {
+  collection: 'brand',
+});
 
 module.exports = Brand;
