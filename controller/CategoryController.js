@@ -1,47 +1,61 @@
+const { uploadToCloudinary } = require('../helper');
 const Category = require('../models/category');
 
 class CategoryController {
-    async show(_, res) {
-        try {
-            const categories = await Category.find({});
-            res.status(200).json({categories});
-        } catch (err) {
-            console.error(err);
-        }
+  async show(_, res) {
+    try {
+      const categories = await Category.find({});
+      res.status(200).json({ categories });
+    } catch (err) {
+      console.error(err);
     }
-    async create(req, res){
-        try {
-            const {name, icon} = req.body;
-            const category = new Category({
-                name,
-                icon
-            });
-            await category.save();
-            res.status(200).json({message: 'Create successfully!'});
-        } catch(err){
-            console.log(err);
-        }
+  }
+  async create(req, res) {
+    try {
+      const { name } = req.body;
+      console.log(req.body);
+      console.log(req.file);
+      let iconUrl = '';
+      if (req.file) {
+        iconUrl = (await uploadToCloudinary(req.file))?.url;
+      }
+      const category = new Category({
+        name,
+        icon: iconUrl,
+      });
+      await category.save();
+      res.status(200).json({ message: 'Create category successfully!' });
+    } catch (err) {
+      console.log(err);
     }
-    async delete(req, res){
-        try {
-            const categoryId = req.params.slug;
-            const result = await Category.findByIdAndDelete({ _id: categoryId });
-            console.log(result);
-            res.json(200).json({ messaage: 'Delete successfully!' });
-        }catch(err) {
-            console.log(err);
-        }
+  }
+  async delete(req, res) {
+    try {
+      const categoryId = req.params.slug;
+      const result = await Category.findByIdAndDelete(categoryId);
+      console.log(result);
+      res.status(200).json({ message: 'Delete category successfully!' });
+    } catch (err) {
+      console.log(err);
     }
-    async update(req, res) {
-        try {
-            const categoryId = req.params.slug;
-            const result = await Category.findByIdAndUpdate({ _id: categoryId }, {name: req.body.name, icon: req.body.icon});
-            console.log('results: ', result);
-            res.status(200).json({ message: 'Update sucessfully!'});
-        } catch(err) {
-            console.log(err);
-        }
+  }
+  async update(req, res) {
+    try {
+      const categoryId = req.params.slug;
+      let iconUrl = '';
+      if (req.file) {
+        iconUrl = (await uploadToCloudinary(req.file))?.url;
+      } else iconUrl = req.body.icon;
+      const result = await Category.findByIdAndUpdate(categoryId, {
+        name: req.body.name,
+        icon: iconUrl,
+      });
+      console.log('results: ', result);
+      res.status(200).json({ message: 'Update category sucessfully!' });
+    } catch (err) {
+      console.log(err);
     }
+  }
 }
 
 module.exports = new CategoryController();

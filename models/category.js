@@ -1,16 +1,13 @@
 const mongoose = require('mongoose');
 
 const categorySchema = new mongoose.Schema({
-    name: String,
-    icon: {
-        name: String,
-        component: []
-    },
-    description: String,
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
+  name: String,
+  icon: String,
+  description: String,
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
 
 const Category = mongoose.model('Category', categorySchema);
