@@ -1,22 +1,21 @@
 const mongoose = require('mongoose');
 
-const brandSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    unique: true,
-  },
-  image: String,
-  products: [
-    {
-      type: mongoose.SchemaTypes.ObjectId,
-      ref: 'Product',
+const brandSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      unique: true,
     },
-  ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
+    image: String,
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-});
+  {
+    collection: 'brand',
+  },
+);
 
 brandSchema.methods.getAll = function () {
   return this.model('Brand').find();
