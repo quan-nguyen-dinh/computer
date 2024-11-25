@@ -76,6 +76,68 @@ class OrderController {
       console.log(err);
     }
   }
+  async getProductsByDay(_, res) {
+    try {
+      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1); // Ngày đầu tiên của tháng
+      const startDate = new Date();
+      startDate.setDate(1);
+      const endDate = new Date(startDate);
+      endDate.setMonth(startDate.getMonth() + 1);
+      const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1); // Ngày đầu tiên của tháng tiếp theo
+      console.log('DATE: ', new Date());
+      console.log(startDate, 'START DATE: ', startOfMonth);
+      console.log(endDate, 'END DATE: ', endOfMonth);
+      const orders = await Order.aggregate([
+        {
+          $match: {
+            createdAt: {
+              $gte: startDate,
+              $lt: endDate,
+            },
+          },
+        },
+        {
+          $unwind: '$products',
+        },
+
+        {
+          $group: {
+            _id: {
+              dayOfMonth: { $dayOfMonth: '$createdAt' },
+            },
+            value: { $sum: '$products.quantity' },
+          },
+        },
+      ]);
+      // const orders = await Order.aggregate([
+      //   {
+      //     $unwind: '$products',
+      //   },
+      //   {
+      //     $group: {
+      //       _id: {
+      //         year: { $year: '$createdAt' },
+      //       },
+      //       value: { $sum: '$products.quantity' },
+      //     },
+      //   },
+      //   {
+      //     $sort: {
+      //       '_id.year': 1,
+      //     },
+      //   },
+      //   {
+      //     $project: {
+      //       _id: 1,
+      //       value: 1,
+      //     },
+      //   },
+      // ]);
+      res.status(200).json({ orders });
+    } catch (error) {
+      console.log(error);
+    }
+  }
   async getProductsByMonth(_, res) {
     try {
       const orders = await Order.aggregate([
@@ -85,7 +147,7 @@ class OrderController {
         {
           $group: {
             _id: {
-              month: { $month: '$createAt' },
+              month: { $month: '$createdAt' },
             },
             value: { $sum: '$products.quantity' },
           },
@@ -180,14 +242,24 @@ class OrderController {
       // const orders = await Order.find();
       const orders = await Order.aggregate([
         {
-          $unwind: '$products',
+          $lookup: {
+            from: 'user',
+            localField: 'user',
+            foreignField: '_id',
+            as: 'customer',
+          },
         },
         {
-          $lookup: {
-            from: 'category',
-            localField: '_id',
-            foreignField: 'category',
-            as: 'category',
+          $unwind: '$customer',
+        },
+        {
+          $group: {
+            _id: '$_id',
+            customerName: { $first: '$customer.name' },
+            // totalProducts: { $count: '$products'},
+            status: { $first: '$status' },
+            totalPrice: { $first: '$totalPrice' },
+            createdAt: { $first: '$createdAt' },
           },
         },
       ]);
@@ -204,16 +276,20 @@ class OrderController {
       console.log(err);
     }
   }
+  async getById(req, res) {
+    try {
+      const order = await Order.findById(req.params.id);
+      res.status(200).json({ order });
+    } catch (error) {
+      console.log(error);
+    }
+  }
   async create(req, res) {
     try {
       const { products, totalPrice, userId } = req.body;
       let { products: productsInCart } = (await User.findById(userId).select('cart'))?.cart;
-      let createAt = new Date();
-      createAt.setMonth(7);
-      let createdAt = createAt;
       console.log('PRODUCTS: ', products);
       console.log('productsInCart: ', productsInCart);
-      // return    res.status(200).json({message: 'Order successfullly!'});;
       if (productsInCart.length === products.length) {
         productsInCart = [];
       } else {
@@ -226,7 +302,6 @@ class OrderController {
           return !products.find(
             (item) => item.product._id.toString() === _item.product._id.toString(),
           );
-          // return true;
         });
         console.log('newProducts: ', productsInCart);
       }
@@ -238,45 +313,9 @@ class OrderController {
       );
       console.log('CART AFTER UPDATE: ', cart);
       console.log('cart: ', productsInCart);
-      // productsInCart.
-      let orders = [];
-      for (let i = 0; i < 5; ++i) {
-        const order = new Order({ products, totalPrice, user: userId, createAt, createdAt });
-        orders = [...orders, order];
-      }
-      //    const res1 =  await Promise.allSettled([
-      //         ()=> Order.insertMany(orders),
-      //         () => {
-      //          createAt.setMonth(2);  createdAt = createAt;
-      //           return Order.insertMany(orders)
-      //         },
-      //           () => {
-      //            createAt.setMonth(4);  createdAt = createAt;
-      //           return Order.insertMany(orders)
-      //         },
-      //           () => {
-      //            createAt.setMonth(8);  createdAt = createAt;
-      //           return Order.insertMany(orders)
-      //         },
-      //           () => {
-      //            createAt.setMonth(9);  createdAt = createAt;
-      //           return Order.insertMany(orders)
-      //         },
-      //     ]);
-      //     console.log(res1);
-      await Order.insertMany(orders);
-      createAt.setMonth(2);
-      createdAt = createAt;
-      await Order.insertMany(orders);
-      createAt.setMonth(4);
-      createdAt = createAt;
-      await Order.insertMany(orders);
-      // createAt.setMonth(8);
-      // createdAt = createAt;
-      // await Order.insertMany(orders);
-      // createAt.setMonth(9);
-      // createdAt = createAt;
-      // await Order.insertMany(orders);
+      const newOrder = new Order({ products, totalPrice, user: userId });
+      const result = await newOrder.save();
+      console.log('result: ', result);
       res.status(200).json({ message: 'Order successfullly!' });
     } catch (err) {
       console.log(err);
