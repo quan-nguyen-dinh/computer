@@ -4,12 +4,16 @@ const cors = require('cors');
 const db = require('./config/db');
 const route = require('./routes');
 const swaggerDocs = require('./swagger');
+const logger = require('./config/log');
 
 require('dotenv').config();
 
 BigInt.prototype.toJSON = function () {
   return this.toString();
 };
+
+
+logger.info('START SUCESSS');
 
 const app = express();
 

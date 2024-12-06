@@ -2,10 +2,13 @@ const { uploadToCloudinary } = require('../helper');
 const Category = require('../models/category');
 
 class CategoryController {
-  async show(_, res) {
+  async show(req, res) {
     try {
-      const categories = await Category.find({});
-      res.status(200).json({ categories });
+      const { page = 1, limit = 10 } = req.query;
+      const offset = (page - 1) * limit;
+      const categories = await Category.find({}).skip(offset).limit(limit);
+      const totalCategories = await Category.countDocuments();
+      res.status(200).json({ categories, totalCategories });
     } catch (err) {
       console.error(err);
     }

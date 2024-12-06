@@ -1,6 +1,7 @@
 const { uploadToCloudinary } = require('../helper');
 const Order = require('../models/order');
 const User = require('../models/user');
+const { filter } = require('./ProductController');
 
 class OrderController {
   async getOrderInfo(_, res) {
@@ -59,16 +60,10 @@ class OrderController {
     try {
       const renevue = await Order.aggregate([
         {
-          $group: { _id: { month: { $month: '$createAt' } }, totalPrice: { $sum: '$totalPrice' } },
+          $group: { _id: { $month: '$createdAt' }, value: { $sum: '$totalPrice' } },
         },
         {
-          $sort: { '_id.month': 1 },
-        },
-        {
-          $project: {
-            _id: 1,
-            totalPrice: 1,
-          },
+          $sort: { '_id': 1 },
         },
       ]).exec();
       res.status(200).json(renevue);
@@ -76,66 +71,91 @@ class OrderController {
       console.log(err);
     }
   }
-  async getProductsByDay(_, res) {
+  async getProductsByDate(req, res) {
     try {
-      const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1); // Ngày đầu tiên của tháng
-      const startDate = new Date();
-      startDate.setDate(1);
-      const endDate = new Date(startDate);
-      endDate.setMonth(startDate.getMonth() + 1);
-      const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1); // Ngày đầu tiên của tháng tiếp theo
-      console.log('DATE: ', new Date());
-      console.log(startDate, 'START DATE: ', startOfMonth);
-      console.log(endDate, 'END DATE: ', endOfMonth);
-      const orders = await Order.aggregate([
-        {
+      console.log('query: ', req.query);
+      let operators = [];
+      if (req.query.filterBy === 'day') {
+        const startDate = new Date();
+        startDate.setDate(1);
+        const endDate = new Date(startDate);
+        endDate.setMonth(startDate.getMonth() + 1);
+        operators.push({
           $match: {
             createdAt: {
               $gte: startDate,
               $lt: endDate,
             },
           },
-        },
+        })
+      }
+      const filterByTime = {
+        day: { $dayOfMonth: '$createdAt' },
+        month: { $month: '$createdAt' },
+        year: { $year: '$createdAt' },
+      };
+      const subOperators = [
         {
           $unwind: '$products',
         },
-
         {
           $group: {
-            _id: {
-              dayOfMonth: { $dayOfMonth: '$createdAt' },
-            },
+            _id: filterByTime[req.query.filterBy],
             value: { $sum: '$products.quantity' },
           },
         },
-      ]);
-      // const orders = await Order.aggregate([
-      //   {
-      //     $unwind: '$products',
-      //   },
-      //   {
-      //     $group: {
-      //       _id: {
-      //         year: { $year: '$createdAt' },
-      //       },
-      //       value: { $sum: '$products.quantity' },
-      //     },
-      //   },
-      //   {
-      //     $sort: {
-      //       '_id.year': 1,
-      //     },
-      //   },
-      //   {
-      //     $project: {
-      //       _id: 1,
-      //       value: 1,
-      //     },
-      //   },
-      // ]);
-      res.status(200).json({ orders });
+        {
+          $sort: {
+            '_id': 1,
+          },
+        }
+      ]
+      operators = [...operators, ...subOperators];
+      console.log(operators);
+      const orders = await Order.aggregate(operators)
+      res.status(200).json(orders);
     } catch (error) {
       console.log(error);
+    }
+  }
+  async getBestSeller(_, res, next) {
+    try {
+      const bestsellers = await Order.aggregate([
+        {
+          $unwind: "$products"
+        },
+        {
+          $group: {
+            _id: "$products.product._id",
+            value: {
+              $sum: "$products.quantity"
+            }
+          }
+        },
+        {
+          $sort: {
+            'value': -1
+          }
+        },
+        {
+          $limit: 5
+        },
+        {
+          $lookup: {
+            from: 'product',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'product',
+          }
+        },
+        {
+          $unwind: "$product"
+        },
+      ]);
+      res.status(200).json({ bestsellers });
+    } catch (error) {
+      console.log(error);
+      // next(err)
     }
   }
   async getProductsByMonth(_, res) {
@@ -147,20 +167,14 @@ class OrderController {
         {
           $group: {
             _id: {
-              month: { $month: '$createdAt' },
+              $month: '$createdAt'
             },
             value: { $sum: '$products.quantity' },
           },
         },
         {
           $sort: {
-            '_id.month': 1,
-          },
-        },
-        {
-          $project: {
-            _id: 1,
-            value: 1,
+            '_id': 1,
           },
         },
       ]);
@@ -178,7 +192,7 @@ class OrderController {
         },
         {
           $lookup: {
-            from: 'categories',
+            from: 'category',
             localField: 'products.product.category',
             foreignField: '_id',
             as: 'category_order',
@@ -190,7 +204,7 @@ class OrderController {
         {
           $group: {
             _id: '$category_order.name',
-            totalPrice: {
+            value: {
               $sum: '$totalPrice',
             },
           },
@@ -211,7 +225,7 @@ class OrderController {
 
         {
           $lookup: {
-            from: 'brands',
+            from: 'brand',
             localField: 'products.product.brand',
             foreignField: '_id',
             as: 'brand_order',
@@ -226,7 +240,7 @@ class OrderController {
         {
           $group: {
             _id: '$brand_order.name',
-            totalProduct: {
+            value: {
               $sum: '$products.quantity',
             },
           },
@@ -237,20 +251,21 @@ class OrderController {
       res.status(500).json(err);
     }
   }
-  async show(_, res) {
+  async show(req, res) {
     try {
-      // const orders = await Order.find();
-      const orders = await Order.aggregate([
+      const { page = 1, limit = 10 } = req.query;
+      const offset = (page - 1) * limit;
+      const result = await Order.aggregate([
         {
           $lookup: {
             from: 'user',
             localField: 'user',
             foreignField: '_id',
-            as: 'customer',
-          },
+            as: 'customer'
+          }
         },
         {
-          $unwind: '$customer',
+          $unwind: '$customer'
         },
         {
           $group: {
@@ -260,18 +275,34 @@ class OrderController {
             status: { $first: '$status' },
             totalPrice: { $first: '$totalPrice' },
             createdAt: { $first: '$createdAt' },
-          },
+          }
         },
+        {
+          $facet: {
+            orders: [
+              { $skip: offset },
+              { $limit: Number(limit) }
+            ],
+            totalOrders: [
+              { $count: 'count' }
+            ]
+          }
+        }
       ]);
-      res.status(200).json({ orders });
+      const orders = result[0]?.orders;
+      const totalOrders = result[0]?.totalOrders[0]?.count;
+      res.status(200).json({ orders, totalOrders });
     } catch (err) {
       console.log(err);
     }
   }
   async getByUserId(req, res) {
     try {
-      const orders = await Order.find({ user: req.params.userId });
-      res.status(200).json({ orders });
+      const { page = 1 } = req.query;
+      const offset = (page - 1) * 10;
+      const orders = await Order.find({ user: req.params.userId }).skip(offset).limit(10);
+      const totalOrders = await Order.find({ user: req.params.userId }).countDocuments();
+      res.status(200).json({ orders, totalOrders });
     } catch (err) {
       console.log(err);
     }

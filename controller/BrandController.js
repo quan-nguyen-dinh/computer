@@ -1,20 +1,23 @@
 const { uploadToCloudinary } = require('../helper');
 const Brand = require('../models/brand');
+const { getOffset } = require('../utils/pagination');
 
-async function show(_, res, next) {
+async function show(req, res, next) {
   try {
-    const brands = await Brand.getAll();
-    res.status(200).json({ brands });
-  } catch (err) {
-    console.log(err.name);
-    next(err);
+    const { page, limit } = req.query;
+    const offset = getOffset(page, limit);
+    // const result = Promise.all((Brand.find({}).skip(offset).limit(limit)), Brand.countDocuments());
+    const brands = await Brand.find({}).skip(offset).limit(limit);
+    const totalBrands = await Brand.countDocuments();
+    res.status(200).json({ brands, totalBrands });
+  } catch (error) {
+    next(error);
   }
 }
 
 async function create(req, res, next) {
   try {
     const { name } = req.body;
-    console.name('NAME: ', name);
     const exitsBrand = await Brand.findOne({ name: name });
     console.log(exitsBrand);
     if (exitsBrand) {
@@ -49,7 +52,6 @@ async function update(req, res, next) {
       imageUrl = req.body.image;
     } else imageUrl = (await uploadToCloudinary(req.file))?.url;
     const brand = await Brand.updateOne({ _id: req.params.id }, { name: name, image: imageUrl });
-    console.log('brand: ', brand);
     res.status(200).json({ message: 'Update brand successfully' });
   } catch (err) {
     console.log(err);

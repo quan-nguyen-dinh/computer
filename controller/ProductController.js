@@ -10,7 +10,8 @@ async function show(req, res) {
       .populate('brand', 'name')
       .skip(page)
       .limit(limit);
-    res.status(200).json({ products });
+    const totalProducts = await Product.countDocuments();
+    res.status(200).json({ products, totalProducts });
   } catch (err) {
     console.log(err);
   }
@@ -19,7 +20,7 @@ async function filter(req, res) {
   try {
     const {
       productName,
-      brandName,
+      brandId,
       sortBy,
       priceMin,
       priceMax,
@@ -35,6 +36,9 @@ async function filter(req, res) {
     console.log('query: ', req.query);
     if (productName) {
       query = query.find({ name: { $regex: productName, $options: 'i' } });
+    }
+    if (brandId) {
+      query = query.where('brand').equals(brandId);
     }
     if (categoryId) {
       query = query.where('category').equals(categoryId);
