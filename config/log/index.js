@@ -10,8 +10,9 @@ module.exports = winston.createLogger({
         winston.format.colorize(),
         winston.format.printf(
             log => {
-                if(log.message) return `[${log.timestamp}] [${log.level}] ${log.message}`;
-                else return `[${log.timestamp}] [${log.level}] ${log.stack}`
+                // console.log(JSON.stringify(log, ''));
+                // if (log.level.includes('error')) `[${log.timestamp}] [${log.level}] ${log.name} ${log.message}`
+                return `[${log.timestamp}] [${log.level}] ${log.message}`;
             },
         ),
     ),

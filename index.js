@@ -5,6 +5,7 @@ const db = require('./config/db');
 const route = require('./routes');
 const swaggerDocs = require('./swagger');
 const logger = require('./config/log');
+const { errorHandlingMiddeware } = require('./middlewares/error');
 
 require('dotenv').config();
 
@@ -25,16 +26,7 @@ app.use(bodyParser.json());
 
 route(app);
 
-const errorMiddleware = (err, req, res, next) => {
-  console.log('------MIDDLE WARE-------------', err.name, err.message);
-  if (err.name === 'Error' && err.message) {
-    res.status(400).json({ message: err.message });
-    return;
-  }
-  console.log(err.message);
-};
-
-app.use(errorMiddleware);
+app.use(errorHandlingMiddeware);
 
 const http = require('http').Server(app);
 const port = 3001;
