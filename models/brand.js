@@ -5,8 +5,12 @@ const brandSchema = new mongoose.Schema(
     name: {
       type: String,
       unique: true,
+      required: true
     },
-    image: String,
+    image: {
+      type: String,
+      required: true,
+    },
     createdAt: {
       type: Date,
       default: Date.now,

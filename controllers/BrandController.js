@@ -1,5 +1,7 @@
+const { HttpStatusCode } = require('../constant/httpStatusCode');
 const { uploadToCloudinary } = require('../helper');
 const Brand = require('../models/brand');
+const BaseError = require('../utils/error');
 const { getOffset } = require('../utils/pagination');
 
 async function show(req, res, next) {
@@ -18,10 +20,18 @@ async function show(req, res, next) {
 async function create(req, res, next) {
   try {
     const { name } = req.body;
+    console.log('name: ', name);
+    if(!name) {
+      throw new BaseError(HttpStatusCode.BAD_REQUEST, 'Name must not be empty');
+    }
+    if (!req.file) {
+      throw new BaseError(HttpStatusCode.BAD_REQUEST, 'File must not be empty');
+    }
+    console.log('FILES: ', req.file);
     const exitsBrand = await Brand.findOne({ name: name });
     console.log(exitsBrand);
     if (exitsBrand) {
-      throw new Error("Brand's name is duplicated");
+      throw new BaseError(409, "Brand's name is duplicated", 'ValidationError');
     }
     let imageUrl = '';
     if (req.file) {
@@ -32,8 +42,12 @@ async function create(req, res, next) {
     res.status(200).json({ message: 'Create brand successfullly' });
   } catch (err) {
     console.log(err.name);
+    console.log(err.stack);
     if (err instanceof Error) {
       console.log(err.message);
+    }
+    if (err instanceof BaseError) {
+      console.log(err);
     }
     next(err);
   }

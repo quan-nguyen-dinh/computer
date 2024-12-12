@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const BrandController = require('../controller/BrandController');
+const BrandController = require('../controllers/BrandController');
 const { upload } = require('../helper');
 
 router.get('/show', BrandController.show);

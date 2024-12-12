@@ -4,6 +4,7 @@ const User = require('../models/user');
 class CartController {
     async show(req, res) {
         try {
+            const { userId } = req.params;
             const userInfo = await User.findById(req.params.userId).select('cart');
             res.status(200).json({userInfo});
         } catch (err) {

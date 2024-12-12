@@ -16,6 +16,18 @@ async function show(req, res) {
     console.log(err);
   }
 }
+
+async function getViewedProducts(req, res, next)  {
+  try {
+    const viewedProductIds = req.body.viewedProducts;
+    const viewedProducts = await Product.find({_id: { $in: viewedProductIds}});
+    console.log('viewedProductIds', viewedProducts);
+    res.status(200).json({viewedProducts})
+  }catch (error) {
+    next(error);
+  }
+}
+
 async function filter(req, res) {
   try {
     const {
@@ -85,7 +97,7 @@ async function create(req, res) {
     if (req.files) {
       const imageUrls = await uploadMultipleFileToCloudinary(req.files);
       if (imageUrls.primaryImage) {
-        primaryImage = null;
+        primaryImage = imageUrls.primaryImage;
       }
       if (imageUrls.subImages) {
         subImages = imageUrls.subImages;
@@ -109,7 +121,7 @@ async function create(req, res) {
     });
     await newProduct.save();
     console.timeEnd();
-    res.status(201).json({ message: 'Create product successfully!' });
+    res.status(200).json({ message: 'Create product successfully!' });
   } catch (err) {
     console.log(err);
   }
@@ -171,4 +183,4 @@ async function remove(req, res) {
   }
 }
 
-module.exports = { show, create, update, remove, filter, detail };
+module.exports = { show, create, update, remove, filter, detail, getViewedProducts };

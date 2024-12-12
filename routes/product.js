@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const { upload } = require('../helper/index');
-const ProductController = require('../controller/ProductController');
+
+const ProductController = require('../controllers/ProductController');
 /**
  * @openapi
  * '/product/get-all':
@@ -34,6 +35,7 @@ const ProductController = require('../controller/ProductController');
  */
 router.get('/get-all', ProductController.show);
 router.get('/detail/:id', ProductController.detail);
+router.post('/viewed-products', ProductController.getViewedProducts);
 router.post(
   '/create',
   upload.fields([

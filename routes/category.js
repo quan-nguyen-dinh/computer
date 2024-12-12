@@ -1,5 +1,5 @@
 const router = require('express').Router();
-const CategoryController = require('../controller/CategoryController');
+const CategoryController = require('../controllers/CategoryController');
 const { upload } = require('../helper');
 
 router.get('/show', CategoryController.show);
