@@ -1,4 +1,5 @@
 const logger = require('../config/log');
+
 function errorHandlingMiddeware(error, _, res, _next) {
     if (error.name === 'BaseError' && error.message) {
         res.status(error.status).json({ message: error.message });
