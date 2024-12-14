@@ -4,6 +4,7 @@ const categoryRouter = require('./category');
 const cartRouter = require('./cart');
 const brandRouter = require('./brand');
 const orderRouter = require('./order');
+const bannerRouter = require('./banner');
 
 function route(app) {
     app.use('/', userRouter);
@@ -12,6 +13,7 @@ function route(app) {
     app.use('/cart', cartRouter);
     app.use('/brand', brandRouter);
     app.use('/order', orderRouter);
+    app.use('/banners', bannerRouter);
 }
 
 module.exports = route;
