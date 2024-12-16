@@ -14,6 +14,10 @@ const bannerSchema = new mongoose.Schema(
         directURL: {
             type: String,
             require: true
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
         }
     },
     {

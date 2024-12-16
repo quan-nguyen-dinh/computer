@@ -1,12 +1,20 @@
 const { uploadToCloudinary } = require("../helper");
 const Banner = require("../models/banner");
 const BaseError = require("../utils/error");
+const { getOffset } = require("../utils/pagination");
 
 
 async function show(req, res, next) {
     try {
-        const banners = await Banner.find({});
-        res.status(200).json({ banners });
+        const { page = 1, limit = 10} = req.query;
+        const offset = getOffset(page, limit);
+        const [banners, totalBanners] = await Promise.all(
+           ([
+            Banner.find({}).skip(offset).limit(limit),
+            Banner.countDocuments()
+           ])
+        );
+        res.status(200).json({ banners, totalBanners });
     } catch (error) {
         next(error);
     }
@@ -14,10 +22,21 @@ async function show(req, res, next) {
 
 async function create(req, res, next) {
     try {
-        const { name, directURL } = req.body;
-        if (name) {
-            throw BaseError(404, 'Name must be not null');
+        let { name, directURL } = req.body;
+        let errors = [];
+        if (!name) {
+            errors.push('Name must be not empty');
         }
+        if (!directURL) {
+            errors.push('Direct URL must be not empty');
+        }
+        if (!req.file) {
+            errors.push('Thumbnail URL must be not empty')
+        }
+        if (errors.length > 0) {
+            throw new BaseError(409, errors);
+        }
+
         let thumbnailURL = '';
         if(req.file) {
             thumbnailURL = (await uploadToCloudinary(req.file))?.url;
@@ -38,8 +57,7 @@ async function update(req, res, next) {
         } else {
             thumbnailURL = req.body.thumbnailURL;
         }
-        const banner = await Banner.updateOne({ _id: req.params.id }, {name, directURL, thumbnailURL});
-        console.log('UPDATE BANNER: ', banner);
+        await Banner.updateOne({ _id: req.params.id }, {name, directURL, thumbnailURL});
         res.status(200).json({ message: 'Update banner successfully'});
     } catch (error) {
         next(error);
@@ -49,8 +67,7 @@ async function update(req, res, next) {
 async function remove(req, res, next) {
     try {
         const id = req.params.id;
-        const result = await Banner.findByIdAndDelete(id);
-        console.log(result);
+        await Banner.findByIdAndDelete(id);
         res.status(200).json({ message: 'Delete banner successfully'});
     } catch (error) {
         next(error);
